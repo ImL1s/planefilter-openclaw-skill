@@ -37,11 +37,6 @@ if (!RAPIDAPI_KEY) {
 const {
   isValidIcaoType,
   normalizeAircraftType,
-  WIDE_BODY,
-  NARROW_BODY,
-  REGIONAL,
-  SIZE_RANK,
-  getAircraftSize,
   detectEquipmentChange,
 } = require('./aircraft_data');
 
