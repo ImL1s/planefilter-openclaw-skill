@@ -61,11 +61,11 @@ Verifies all API keys are set and reachable. Shows which data sources are availa
   "origin": "NRT",
   "destination": "TPE",
   "aircraftType": "A333",
-  "registration": "B-18302",
-  "confidence": 0.85,
+  "registration": "B-18311",
+  "confidence": 0.6,
   "equipmentChange": null,
-  "typeDistribution": { "A333": 0.65, "A330-300": 0.35 },
-  "sources": ["opensky", "aerodatabox", "airlabs"]
+  "typeDistribution": { "A333": 1 },
+  "sources": ["aerodatabox"]
 }
 ```
 
@@ -82,7 +82,7 @@ When presenting results to the user, follow these rules:
 | `typeDistribution` | Shows agreement across sources. Multiple entries = sources disagree |
 | `sources` empty | No data found — suggest trying a different date |
 
-**Note on aircraft type codes:** AeroDataBox may return full model names (e.g. "Airbus A330-300") while OpenSky returns ICAO codes (e.g. "A333"). These appear as separate entries in `typeDistribution` but refer to the same aircraft. Take this into account when interpreting confidence.
+**Note on aircraft type codes:** The script automatically normalizes model names (e.g. "Airbus A330-300" → "A333") and filters invalid typecodes. In rare cases, an unrecognized model name may pass through as-is.
 
 ## How It Works
 
