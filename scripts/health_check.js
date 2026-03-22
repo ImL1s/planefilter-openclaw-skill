@@ -4,7 +4,7 @@
  *
  * Usage: node health_check.js
  *
- * @security { env: ["RAPIDAPI_KEY", "AIRLABS_KEY", "GEMINI_API_KEY"], endpoints: ["aerodatabox.p.rapidapi.com", "airlabs.co", "opensky-network.org", "generativelanguage.googleapis.com"], files: { read: [], write: [] } }
+ * @security { env: ["RAPIDAPI_KEY", "AIRLABS_KEY"], endpoints: ["aerodatabox.p.rapidapi.com", "airlabs.co", "opensky-network.org"], files: { read: [], write: [] } }
  */
 'use strict';
 
@@ -31,7 +31,6 @@ async function checkAeroDataBox() {
     return { status: 'ok', note: 'Key valid' };
   } catch (err) {
     if (err.message.includes('403')) return { status: 'error', note: 'Invalid or expired RAPIDAPI_KEY' };
-    // Health endpoint may not exist, try a real query
     return { status: 'ok', note: 'Key set (endpoint check skipped)' };
   }
 }
@@ -47,17 +46,6 @@ async function checkAirLabs() {
   }
 }
 
-async function checkGemini() {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return { status: 'skipped', note: 'GEMINI_API_KEY not set (optional, for AI briefing)' };
-  try {
-    await get(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
-    return { status: 'ok', note: 'Key valid' };
-  } catch (err) {
-    return { status: 'error', note: `Gemini error: ${err.message}` };
-  }
-}
-
 async function main() {
   console.log('PlaneFilter Skill — Health Check\n');
 
@@ -65,7 +53,6 @@ async function main() {
     opensky: await checkOpenSky(),
     aerodatabox: await checkAeroDataBox(),
     airlabs: await checkAirLabs(),
-    gemini: await checkGemini(),
   };
 
   const icons = { ok: '✅', warn: '⚠️', error: '❌', missing: '❌', skipped: '⏭️' };
@@ -77,7 +64,6 @@ async function main() {
 
   console.log('\nCapabilities:');
   console.log(`  Flight search:  ${results.aerodatabox.status === 'ok' ? '✅ Ready' : '❌ Need RAPIDAPI_KEY'}`);
-  console.log(`  AI briefing:    ${results.gemini.status === 'ok' ? '✅ Ready' : '⏭️ Set GEMINI_API_KEY to enable'}`);
   console.log(`  Multi-source:   ${results.airlabs.status === 'ok' ? '✅ 3 sources' : '2 sources (add AIRLABS_KEY for 3rd)'}`);
 
   const hasError = results.aerodatabox.status === 'missing' || results.aerodatabox.status === 'error';
@@ -85,6 +71,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(JSON.stringify({ error: true, message: err.message }));
+  console.log(JSON.stringify({ error: true, message: err.message }));
   process.exit(1);
 });

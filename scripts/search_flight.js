@@ -30,7 +30,7 @@ const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '';
 const AIRLABS_KEY = process.env.AIRLABS_KEY || '';
 
 if (!RAPIDAPI_KEY) {
-  console.error(JSON.stringify({ error: true, message: 'RAPIDAPI_KEY not set. Subscribe at https://rapidapi.com/aedbx-aedbx/api/aerodatabox' }));
+  console.log(JSON.stringify({ error: true, message: 'RAPIDAPI_KEY not set. Subscribe at https://rapidapi.com/aedbx-aedbx/api/aerodatabox' }));
   process.exit(1);
 }
 
@@ -222,9 +222,19 @@ async function main() {
     sources.push({ source: 'airlabs', aircraftType: airLabsResult.aircraftType });
   }
 
-  if (sources.length === 0 && !openSkyResult && !aeroResult && !airLabsResult) {
-    console.log(JSON.stringify({ error: true, message: 'No flight data found' }, null, 2));
-    process.exit(1);
+  if (sources.length === 0) {
+    // Even if some APIs returned route data, no aircraft type was found
+    const hasAnyData = openSkyResult || aeroResult || airLabsResult;
+    console.log(JSON.stringify({
+      error: !hasAnyData,
+      message: hasAnyData
+        ? 'Route data found but no aircraft type information available'
+        : 'No flight data found from any source',
+      airline: aeroResult?.airline || '',
+      origin: aeroResult?.origin || airLabsResult?.origin || '',
+      destination: aeroResult?.destination || airLabsResult?.destination || '',
+    }, null, 2));
+    process.exit(hasAnyData ? 0 : 1);
   }
 
   // Calculate confidence
@@ -260,6 +270,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(JSON.stringify({ error: true, message: err.message }));
+  console.log(JSON.stringify({ error: true, message: err.message }));
   process.exit(1);
 });
