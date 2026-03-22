@@ -226,11 +226,17 @@ async function main() {
   const bestReg = aeroResult?.registration || airLabsResult?.registration || openSkyResult?.registration;
 
   // ── Equipment change: scheduled (AeroDataBox) vs actual (OpenSky live) ─
-  // This is the correct use of OpenSky: detect if the plane actually
-  // flying differs from the scheduled aircraft.
+  // OpenSky shows what's currently airborne. If the flight isn't in the air
+  // right now, the callsign match may be unreliable (different airline/route).
   let equipmentChange = null;
   if (aeroResult?.aircraftType && openSkyResult?.aircraftType) {
-    equipmentChange = detectEquipmentChange(aeroResult.aircraftType, openSkyResult.aircraftType);
+    const change = detectEquipmentChange(aeroResult.aircraftType, openSkyResult.aircraftType);
+    if (change) {
+      change.note = 'Based on OpenSky live tracking. Reliable only if this flight is currently airborne.';
+      change.liveAircraftType = openSkyResult.aircraftType;
+      change.liveRegistration = openSkyResult.registration || null;
+      equipmentChange = change;
+    }
   }
 
   // Track which data sources contributed
