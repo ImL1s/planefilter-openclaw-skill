@@ -38,15 +38,32 @@ const {
   isValidIcaoType,
   normalizeAircraftType,
   detectEquipmentChange,
+  toIcaoCallsign,
 } = require('./aircraft_data');
 
-/** OpenSky: callsign → ICAO24 → aircraft metadata (FREE, no key) */
+/**
+ * OpenSky: callsign → ICAO24 → aircraft metadata (FREE, no key).
+ * OpenSky uses ICAO callsigns (e.g. CAL101), not IATA (CI101).
+ * We try ICAO first, then fall back to raw IATA flight number.
+ */
 async function queryOpenSky(flightNumber) {
   try {
-    const statesUrl = `https://opensky-network.org/api/states/all?callsign=${encodeURIComponent(flightNumber)}`;
-    const statesJson = await get(statesUrl);
-    const states = statesJson.states;
-    if (!Array.isArray(states) || states.length === 0) return null;
+    // Convert IATA to ICAO callsign (CI101 → CAL101)
+    const icaoCallsign = toIcaoCallsign(flightNumber);
+    const callsignsToTry = icaoCallsign
+      ? [icaoCallsign, flightNumber]  // ICAO first, IATA fallback
+      : [flightNumber];               // No mapping, try raw
+
+    let states = null;
+    for (const cs of callsignsToTry) {
+      const url = `https://opensky-network.org/api/states/all?callsign=${encodeURIComponent(cs)}`;
+      const json = await get(url);
+      if (json.states && Array.isArray(json.states) && json.states.length > 0) {
+        states = json.states;
+        break;
+      }
+    }
+    if (!states) return null;
 
     const icao24 = String(states[0][0] || '');
     if (!icao24) return null;
@@ -57,7 +74,8 @@ async function queryOpenSky(flightNumber) {
     return {
       aircraftType: (rawType && isValidIcaoType(rawType)) ? rawType : undefined,
       registration: ac.registration || undefined,
-      airline: states[0][2] || undefined, // originCountry
+      // Note: OpenSky states[0][2] is originCountry, NOT airline name.
+      // We intentionally omit airline here — it comes from AeroDataBox.
     };
   } catch {
     return null;

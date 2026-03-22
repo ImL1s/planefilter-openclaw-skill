@@ -101,6 +101,47 @@ function detectEquipmentChange(scheduledType, actualType) {
   return { hasChanged: true, from: scheduledType, to: actualType, changeType };
 }
 
+/**
+ * IATA → ICAO airline code mapping (common carriers).
+ * Used to convert IATA flight numbers (CI101) to ICAO callsigns (CAL101)
+ * for OpenSky Network queries.
+ */
+const AIRLINE_IATA_TO_ICAO = {
+  // Taiwan & Greater China
+  CI: 'CAL', BR: 'EVA', AE: 'MDA', B7: 'UIA', IT: 'TTW', ZV: 'VRE',
+  HX: 'CRK', UO: 'HKE', CX: 'CPA', KA: 'HDA', CA: 'CCA', MU: 'CES',
+  CZ: 'CSN', HU: 'CHH', ZH: 'CSZ', FM: 'CSH', '3U': 'CSC', SC: 'CDG',
+  // Japan & Korea
+  JL: 'JAL', NH: 'ANA', MM: 'APJ', '7C': 'JJA', TW: 'TWB',
+  KE: 'KAL', OZ: 'AAR', LJ: 'JNA', ZE: 'ESR',
+  // Southeast Asia
+  SQ: 'SIA', TR: 'TGW', TG: 'THA', FD: 'AIQ', VZ: 'TVJ',
+  VN: 'HVN', VJ: 'VJC', PR: 'PAL', '5J': 'CEB',
+  GA: 'GIA', QZ: 'AWQ', MH: 'MAS', AK: 'AXM',
+  // US & Europe
+  AA: 'AAL', UA: 'UAL', DL: 'DAL', WN: 'SWA', AS: 'ASA', B6: 'JBU',
+  BA: 'BAW', LH: 'DLH', AF: 'AFR', KL: 'KLM', LX: 'SWR', OS: 'AUA',
+  IB: 'IBE', AY: 'FIN', SK: 'SAS', TK: 'THY', EK: 'UAE', QR: 'QTR',
+  EY: 'ETD', SV: 'SVA',
+  // Oceania
+  QF: 'QFA', NZ: 'ANZ', JQ: 'JST', VA: 'VOZ',
+};
+
+/**
+ * Convert IATA flight number (e.g. "CI101") to ICAO callsign (e.g. "CAL101").
+ * Returns null if airline code is unknown.
+ */
+function toIcaoCallsign(iataFlightNumber) {
+  if (!iataFlightNumber || iataFlightNumber.length < 3) return null;
+  // Try 2-char IATA prefix first, then 1-char (rare but exists)
+  const two = iataFlightNumber.slice(0, 2);
+  const rest2 = iataFlightNumber.slice(2);
+  if (AIRLINE_IATA_TO_ICAO[two] && rest2.length > 0) {
+    return AIRLINE_IATA_TO_ICAO[two] + rest2;
+  }
+  return null;
+}
+
 module.exports = {
   MODEL_TO_ICAO,
   WIDE_BODY,
@@ -108,8 +149,10 @@ module.exports = {
   REGIONAL,
   ICAO_PREFIXES,
   SIZE_RANK,
+  AIRLINE_IATA_TO_ICAO,
   isValidIcaoType,
   normalizeAircraftType,
   getAircraftSize,
   detectEquipmentChange,
+  toIcaoCallsign,
 };
