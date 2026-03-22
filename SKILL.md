@@ -56,6 +56,16 @@ node {baseDir}/scripts/health_check.js
 
 Verifies all API keys are set and reachable. Shows which data sources are available.
 
+### 3. Watch Flight (Cron-Friendly)
+
+```bash
+node {baseDir}/scripts/watch_flight.js --flight=CI101 [--date=2026-03-22]
+```
+
+**Required env:** `RAPIDAPI_KEY`
+
+Outputs notification-ready text (not JSON). Designed for OpenClaw cron jobs with `--announce`.
+
 ## Output Format
 
 `search_flight.js` outputs JSON to stdout:
@@ -96,14 +106,6 @@ When presenting results to the user, follow these rules:
 1. **Parallel query** — Hits OpenSky (free, no key) + AeroDataBox (RapidAPI) + AirLabs (optional) simultaneously
 2. **Confidence scoring** — Weighted votes from each source (AeroDataBox 0.9, OpenSky 0.7, AirLabs 0.6)
 3. **Equipment change detection** — If scheduled aircraft ≠ actual aircraft, classifies as Upgrade/Downgrade/Lateral
-
-### 3. Watch Flight (Cron-Friendly)
-
-```bash
-node {baseDir}/scripts/watch_flight.js --flight=CI101 [--date=2026-03-22]
-```
-
-Outputs notification-ready text (not JSON). Designed for OpenClaw cron jobs with `--announce`.
 
 ## Proactive Notifications (Cron)
 
