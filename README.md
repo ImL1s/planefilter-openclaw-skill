@@ -6,10 +6,34 @@
 
 ## Install
 
+### Option 1: ClawHub (recommended)
+
 ```bash
-# Clone and copy to your skills directory
-git clone https://github.com/ImL1s/planefilter-openclaw-skill.git
-cp -r planefilter-openclaw-skill/ ~/.openclaw/workspace/skills/planefilter/
+npx clawhub install planefilter
+```
+
+### Option 2: Git clone
+
+```bash
+git clone https://github.com/ImL1s/planefilter-openclaw-skill.git ~/.openclaw/workspace/skills/planefilter
+```
+
+### Option 3: Let the agent install it
+
+Tell your OpenClaw agent:
+
+> "Install the planefilter skill from https://github.com/ImL1s/planefilter-openclaw-skill"
+
+The agent will clone and place it in the correct directory.
+
+### After install
+
+```bash
+# Verify it loaded
+openclaw skills list | grep planefilter
+
+# Set up your API key
+openclaw skills onboard
 ```
 
 ## Setup API Keys
@@ -19,7 +43,7 @@ cp -r planefilter-openclaw-skill/ ~/.openclaw/workspace/skills/planefilter/
 | `RAPIDAPI_KEY` | ✅ Yes | 150 req/month | [AeroDataBox on RapidAPI](https://rapidapi.com/aedbx-aedbx/api/aerodatabox) |
 | `AIRLABS_KEY` | Optional | 150 req/month | [AirLabs](https://airlabs.co/signup) |
 
-Set in your OpenClaw config (`~/.openclaw/openclaw.json`) or as environment variables.
+Set via `openclaw skills onboard` (auto-prompted) or manually in `~/.openclaw/openclaw.json`.
 
 ## Usage
 

@@ -6,6 +6,7 @@ description: >
   aircraft, checking equipment change, querying flight data, asking what plane
   a flight uses. Triggers on: flight lookup, aircraft type, what plane, 查機型,
   航班查詢, equipment change, plane filter, flight number, CI101, 飛機型號.
+homepage: https://github.com/ImL1s/planefilter-openclaw-skill
 metadata:
   openclaw:
     emoji: "✈️"
@@ -13,6 +14,12 @@ metadata:
     requires:
       bins: [node]
       env: [RAPIDAPI_KEY]
+    install:
+      - id: "node-brew"
+        kind: "brew"
+        formula: "node"
+        bins: ["node"]
+        label: "Install Node.js (brew)"
 ---
 
 # PlaneFilter — Flight Aircraft Type Lookup
