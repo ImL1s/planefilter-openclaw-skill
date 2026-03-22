@@ -97,6 +97,37 @@ When presenting results to the user, follow these rules:
 2. **Confidence scoring** — Weighted votes from each source (AeroDataBox 0.9, OpenSky 0.7, AirLabs 0.6)
 3. **Equipment change detection** — If scheduled aircraft ≠ actual aircraft, classifies as Upgrade/Downgrade/Lateral
 
+### 3. Watch Flight (Cron-Friendly)
+
+```bash
+node {baseDir}/scripts/watch_flight.js --flight=CI101 [--date=2026-03-22]
+```
+
+Outputs notification-ready text (not JSON). Designed for OpenClaw cron jobs with `--announce`.
+
+## Proactive Notifications (Cron)
+
+Set up a cron job to monitor a flight and push alerts to Telegram/Discord:
+
+```bash
+# Check CI101 every 2 hours, push to Telegram if anything changes
+openclaw cron add --name "Watch CI101" \
+  --every 2h \
+  --session isolated \
+  --message "Use the planefilter skill to watch flight CI101 for today. If there's an equipment change, tell me immediately with details." \
+  --announce --channel telegram
+
+# One-shot check at specific time
+openclaw cron add --name "CI101 departure check" \
+  --at "2026-04-01T06:00:00+08:00" \
+  --session isolated \
+  --message "Use planefilter to check CI101 for today. Report aircraft type and any equipment changes." \
+  --announce --channel telegram \
+  --delete-after-run
+```
+
+The agent reads the cron message, calls `watch_flight.js`, and pushes results to your channel.
+
 ## Troubleshooting
 
 | Error | Cause | Fix |
