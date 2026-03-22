@@ -133,7 +133,7 @@ const AIRLINE_IATA_TO_ICAO = {
  */
 function toIcaoCallsign(iataFlightNumber) {
   if (!iataFlightNumber || iataFlightNumber.length < 3) return null;
-  // Try 2-char IATA prefix first, then 1-char (rare but exists)
+  // Try 2-char IATA prefix
   const two = iataFlightNumber.slice(0, 2);
   const rest2 = iataFlightNumber.slice(2);
   if (AIRLINE_IATA_TO_ICAO[two] && rest2.length > 0) {

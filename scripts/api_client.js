@@ -42,4 +42,3 @@ function get(url, headers = {}) {
 }
 
 module.exports = { get };
-

@@ -14,7 +14,7 @@
  */
 'use strict';
 const { get } = require('./api_client');
-const { normalizeAircraftType, WIDE_BODY, NARROW_BODY, getAircraftSize } = require('./aircraft_data');
+const { normalizeAircraftType, getAircraftSize } = require('./aircraft_data');
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -79,7 +79,7 @@ async function main() {
   }
 
   console.log('');
-  console.log('No equipment change detected. ✅');
+  console.log('ℹ️ Single source (AeroDataBox) — use search_flight.js for multi-source equipment change detection.');
 }
 
 main().catch((err) => {

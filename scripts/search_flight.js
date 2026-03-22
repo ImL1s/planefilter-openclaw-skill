@@ -220,7 +220,7 @@ async function main() {
   const confidence = calculateConfidence(sources, DATE);
 
   // Merge best data
-  const bestAirline = aeroResult?.airline || openSkyResult?.airline || '';
+  const bestAirline = aeroResult?.airline || airLabsResult?.airline || '';
   const bestOrigin = aeroResult?.origin || airLabsResult?.origin || '';
   const bestDest = aeroResult?.destination || airLabsResult?.destination || '';
   const bestReg = aeroResult?.registration || openSkyResult?.registration;
