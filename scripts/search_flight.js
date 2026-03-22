@@ -20,7 +20,7 @@ const args = Object.fromEntries(
 );
 
 if (!args.flight) {
-  console.error('Usage: node search_flight.js --flight=CI101 [--date=2026-03-22]');
+  console.log('Usage: node search_flight.js --flight=CI101 [--date=2026-03-22]');
   process.exit(1);
 }
 
@@ -211,11 +211,13 @@ function calculateConfidence(sources, flightDate) {
 
 const WIDE_BODY = new Set([
   'A332', 'A333', 'A338', 'A339', 'A342', 'A343', 'A345', 'A346',
-  'A359', 'A35K', 'B762', 'B763', 'B764', 'B772', 'B773', 'B77L',
+  'A359', 'A35K', 'A388', 'B744', 'B748',
+  'B762', 'B763', 'B764', 'B772', 'B773', 'B77L',
   'B77W', 'B788', 'B789', 'B78X',
 ]);
 const NARROW_BODY = new Set([
   'A318', 'A319', 'A320', 'A321', 'A19N', 'A20N', 'A21N',
+  'BCS1', 'BCS3',
   'B731', 'B732', 'B733', 'B734', 'B735', 'B736', 'B737', 'B738', 'B739',
   'B38M', 'B39M', 'B3XM', 'B752', 'B753',
 ]);
