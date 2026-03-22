@@ -189,11 +189,11 @@ async function main() {
     AIRLABS_KEY ? queryAirLabs(AIRLABS_KEY, FLIGHT) : Promise.resolve(null),
   ]);
 
-  // Collect source results
+  // ── Aircraft type voting: schedule-based sources ONLY ──────────────────
+  // OpenSky returns LIVE tracking data (what's airborne NOW), which may be
+  // a completely different aircraft than scheduled. It should NOT vote on
+  // aircraft type. Only AeroDataBox and AirLabs provide schedule data.
   const sources = [];
-  if (openSkyResult?.aircraftType) {
-    sources.push({ source: 'opensky', aircraftType: openSkyResult.aircraftType });
-  }
   if (aeroResult?.aircraftType) {
     sources.push({ source: 'aerodatabox', aircraftType: aeroResult.aircraftType });
   }
@@ -202,7 +202,6 @@ async function main() {
   }
 
   if (sources.length === 0) {
-    // Even if some APIs returned route data, no aircraft type was found
     const hasAnyData = openSkyResult || aeroResult || airLabsResult;
     console.log(JSON.stringify({
       error: !hasAnyData,
@@ -216,20 +215,27 @@ async function main() {
     process.exit(hasAnyData ? 0 : 1);
   }
 
-  // Calculate confidence
+  // Calculate confidence (schedule sources only)
   const confidence = calculateConfidence(sources, DATE);
 
-  // Merge best data
+  // Merge best data from schedule sources
   const bestAirline = aeroResult?.airline || airLabsResult?.airline || '';
   const bestOrigin = aeroResult?.origin || airLabsResult?.origin || '';
   const bestDest = aeroResult?.destination || airLabsResult?.destination || '';
-  const bestReg = aeroResult?.registration || openSkyResult?.registration;
+  // Registration: prefer schedule source, fallback to OpenSky live data
+  const bestReg = aeroResult?.registration || airLabsResult?.registration || openSkyResult?.registration;
 
-  // Equipment change detection
+  // ── Equipment change: scheduled (AeroDataBox) vs actual (OpenSky live) ─
+  // This is the correct use of OpenSky: detect if the plane actually
+  // flying differs from the scheduled aircraft.
   let equipmentChange = null;
   if (aeroResult?.aircraftType && openSkyResult?.aircraftType) {
     equipmentChange = detectEquipmentChange(aeroResult.aircraftType, openSkyResult.aircraftType);
   }
+
+  // Track which data sources contributed
+  const sourcesUsed = sources.map((s) => s.source);
+  if (openSkyResult?.aircraftType) sourcesUsed.push('opensky (live)');
 
   const result = {
     flightNumber: FLIGHT,
@@ -242,7 +248,7 @@ async function main() {
     confidence: confidence.confidence,
     equipmentChange,
     typeDistribution: confidence.distribution,
-    sources: sources.map((s) => s.source),
+    sources: sourcesUsed,
   };
 
   console.log(JSON.stringify(result, null, 2));
