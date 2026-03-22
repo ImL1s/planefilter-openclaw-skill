@@ -34,6 +34,58 @@ if (!RAPIDAPI_KEY) {
   process.exit(1);
 }
 
+// ── Aircraft Type Normalization ──────────────────────────────────────────────
+
+/** Known ICAO type code prefixes — used to validate typecodes from OpenSky */
+const ICAO_PREFIXES = new Set([
+  'A3', 'A2', 'A1',  // Airbus
+  'B7', 'B3', 'B38', 'B39', 'B78',  // Boeing
+  'E1', 'E2',  // Embraer
+  'AT', 'CR', 'DH',  // Regional
+  'MD', 'DC', 'IL', 'TU', 'AN',  // Others
+]);
+
+/** Check if a typecode looks like a valid ICAO code (2-4 uppercase alphanumeric) */
+function isValidIcaoType(code) {
+  if (!code || code.length < 2 || code.length > 4) return false;
+  if (!/^[A-Z0-9]+$/.test(code)) return false;
+  // Check against known prefixes
+  return [...ICAO_PREFIXES].some((p) => code.startsWith(p));
+}
+
+/** Common full model name → ICAO type code mapping */
+const MODEL_TO_ICAO = {
+  'airbus a220-100': 'BCS1', 'airbus a220-300': 'BCS3',
+  'airbus a318': 'A318', 'airbus a319': 'A319', 'airbus a319neo': 'A19N',
+  'airbus a320': 'A320', 'airbus a320neo': 'A20N',
+  'airbus a321': 'A321', 'airbus a321neo': 'A21N',
+  'airbus a330-200': 'A332', 'airbus a330-300': 'A333',
+  'airbus a330-800': 'A338', 'airbus a330-900': 'A339',
+  'airbus a340-300': 'A343', 'airbus a340-600': 'A346',
+  'airbus a350-900': 'A359', 'airbus a350-1000': 'A35K',
+  'airbus a380-800': 'A388',
+  'boeing 737-800': 'B738', 'boeing 737-900': 'B739',
+  'boeing 737 max 8': 'B38M', 'boeing 737 max 9': 'B39M',
+  'boeing 747-400': 'B744', 'boeing 747-8': 'B748',
+  'boeing 757-200': 'B752', 'boeing 757-300': 'B753',
+  'boeing 767-300': 'B763', 'boeing 767-400': 'B764',
+  'boeing 777-200': 'B772', 'boeing 777-300': 'B773',
+  'boeing 777-300er': 'B77W', 'boeing 777-200lr': 'B77L',
+  'boeing 787-8': 'B788', 'boeing 787-9': 'B789', 'boeing 787-10': 'B78X',
+  'embraer 170': 'E170', 'embraer 175': 'E175',
+  'embraer 190': 'E190', 'embraer 195': 'E195',
+};
+
+/** Normalize aircraft type: convert full model names to ICAO codes when possible */
+function normalizeAircraftType(raw) {
+  if (!raw) return undefined;
+  const lower = raw.toLowerCase().trim();
+  if (MODEL_TO_ICAO[lower]) return MODEL_TO_ICAO[lower];
+  // Already an ICAO code
+  if (/^[A-Z0-9]{2,4}$/.test(raw)) return raw;
+  return raw; // Return as-is if we can't normalize
+}
+
 // ── API Clients ──────────────────────────────────────────────────────────────
 
 /** OpenSky: callsign → ICAO24 → aircraft metadata (FREE, no key) */
@@ -49,8 +101,9 @@ async function queryOpenSky(flightNumber) {
 
     const acUrl = `https://opensky-network.org/api/metadata/aircraft/icao/${icao24}`;
     const ac = await get(acUrl);
+    const rawType = ac.typecode || undefined;
     return {
-      aircraftType: ac.typecode || undefined,
+      aircraftType: (rawType && isValidIcaoType(rawType)) ? rawType : undefined,
       registration: ac.registration || undefined,
       airline: states[0][2] || undefined, // originCountry
     };
@@ -78,7 +131,7 @@ async function queryAeroDataBox(apiKey, flightNumber, date) {
     const al = f.airline || {};
 
     return {
-      aircraftType: aircraft.model || undefined,
+      aircraftType: normalizeAircraftType(aircraft.model) || undefined,
       registration: aircraft.reg || undefined,
       airline: al.name || undefined,
       origin: (dep.airport || {}).iata || undefined,
